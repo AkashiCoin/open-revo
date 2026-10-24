@@ -90,11 +90,14 @@ description: Official OpenRevo expert agent skill for developing third-party plu
     "desiredIntervalMs": 1500,
     "sensors": ["cpu_temp", "cpu_fan_rpm", "fan_boost"]
   },
-  "permissions": ["telemetry:read", "fan:control", "power:control"]
+  "permissions": ["telemetry:read", "fan:control", "power:control"],
+  "min_host_version": "0.9.3"
 }
 ```
 
 ### 关键字段兼容性指南：
+* **`min_host_version`（宿主最低兼容版本 / 别名 `min_version` / `openrevo_version`）**：
+  推荐使用了新架构特性（如 `watchers` 规则中心、快捷键总线、提权服务等）的插件明确声明（如 `"min_host_version": "0.9.3"`）。宿主基于标准 SemVer 语义化规范进行版本断言；若用户的 OpenRevo 版本低于该要求，管理器会自动呈现醒目的 `⚠️ 需 OpenRevo v0.9.3+` 告警徽章并安全拦截启闭，彻底告别“用户拿旧版二进制到处搜不到新功能”的痛点；
 * **`plugin_type` 与 `type`**：宿主 Rust 后端已配置 alias，**两者完全等价**；
 * **`theme_css`**：仅供 `skin` 插件使用，默认读取 `"theme.css"`；
 * **`background_css`**：仅供 `background` 插件使用，默认读取 `"background.css"`（回退读取 `"theme.css"`）；
@@ -752,6 +755,7 @@ await invoke('unregister_custom_shortcut', { id: 'user_boss_key' });
   "author": "OpenRevo Community",
   "description": "监控结温并在进入自定义模式且>=55℃时自动执行安全切模与EC状态字刷新。",
   "plugin_type": "service",
+  "min_host_version": "0.9.3",
   "watchers": [
     {
       "id": "unblock_751_bit4",

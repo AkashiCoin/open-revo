@@ -13,7 +13,7 @@
 4. [插件清单权威规范 (Plugin Manifest Reference)](#4-插件清单权威规范-plugin-manifest-reference)
 5. [硬件 IPC 控制能力军火库速查 (Capabilities Cheat Sheet)](#5-硬件-ipc-控制能力军火库速查-capabilities-cheat-sheet)
 6. [自适应遥测与动态心跳总线 (Telemetry Bus)](#6-自适应遥测与动态心跳总线-telemetry-bus)
-7. [经典实战用例集 (从桌面桌宠到无头脚本)](#7-经典实战用例集-从桌面桌宠到无头脚本)
+7. [经典实战用例集 (从桌面桌宠到自动化看门狗)](#7-经典实战用例集-从桌面桌宠到无头脚本)
    - [用例 1: 50 行代码开发一个桌面异形机甲桌宠 (Widget)](#用例-1-50-行代码开发一个桌面异形机甲桌宠-widget)
    - [用例 2: 桌面“一键强冷”大开关挂件 (Widget)](#用例-2-桌面一键强冷大开关挂件-widget)
    - [用例 3: 纯文本脚本自定义开机仪式灯效 (Headless Service - 零 Webview)](#用例-3-纯文本脚本自定义开机仪式灯效-headless-service---零-webview)
@@ -22,6 +22,10 @@
    - [用例 6: 进阶机甲桌宠工程规范 —— 边缘吸附灵动小球、动态换肤与跨插件事件总线 (Advanced Widget)](#用例-6-进阶机甲桌宠工程规范--边缘吸附灵动小球动态换肤与跨插件事件总线-advanced-widget)
    - [用例 7: 主窗口主题皮肤与插槽化布局重排 (Skin Plugin —— 一切皆插件)](#用例-7-主窗口主题皮肤与插槽化布局重排-skin-plugin--一切皆插件)
    - [用例 8: 独立背景壁纸插件与零代码壁纸包 (Background Plugin)](#用例-8-独立背景壁纸插件与零代码壁纸包-background-plugin)
+   - [用例 9: 硬件级伴随提权服务开发范式 (Sidecar Service Integration)](#用例-9-硬件级伴随提权服务开发范式-sidecar-service-integration---以-ec-config-为例)
+   - [用例 10: 原生体验第三方插件市场开发对接范式 (Plugin Market Integration)](#用例-10-原生体验第三方插件市场开发对接范式-plugin-market-integration---以-plugin-market-为例)
+   - [用例 11: 声明式零代码全局快捷键与按键宏映射插件 (Universal Shortcut Bus)](#用例-11-声明式零代码全局快捷键与按键宏映射插件-universal-shortcut-bus)
+   - [用例 12: 声明式自动化监听与规则看门狗 (Universal Watcher & Trigger Hub)](#用例-12-声明式自动化监听与规则看门狗-universal-watcher--trigger-hub)
 8. [UI 设计语言与 Design Tokens 复用指南](#8-ui-设计语言与-design-tokens-复用指南)
 9. [调试与安全模式排错 (Safe Mode 二分法)](#9-调试与安全模式排错-safe-mode-二分法)
 
@@ -72,7 +76,7 @@ OpenRevo 坚决反对“无脑开 Webview”。我们确立了**按需分配运�
 | **`slot` (微插槽组件插件)** | 小众机型硬件开关、锁定充电上限、实验功能解耦、特定模具卡片 | **宿主界面预留插槽**<br>(`<ExtensionSlot name="..." />` 安全沙盒) | **< 1 MB**<br>(极低开销微型 iframe) | 精准接管宿主预留位（如 `power.hardware_limit`），严丝合缝无缝继承 Design Tokens |
 | **`tab` (主界面插槽选项卡)** | 显卡高级调试页、风扇实验室、社区扩展页面 | **宿主主窗口沙盒 iframe**<br>(安全隔离 + 跨域推流) | **< 5 MB**<br>(复用 Chromium 进程上下文) | 嵌入在官方主控制台顶栏 Sub-Nav 胶囊栏与内容视口中 |
 | **`widget` (桌面悬浮挂件)** | 机甲能量核心桌宠、HUD 状态条、桌面看板娘、大开关 | **独立 Edge WebView2**<br>(物理沙盒隔离) | **15MB ~ 25MB**<br>(共享 Chromium 渲染段) | 全透明、无边框、置顶、跳过任务栏、可拖拽 |
-| **`service` (无头后台服务)** | 开机欢迎灯效覆盖、自动温控曲线、按电量切模式 | **Rust 内置 Rhai 引擎 / 异步后台微任务** | **< 100 KB**<br>(极致轻量) | **完全无界面 (Zero GUI)**，坚决不弹窗 |
+| **`service` (无头后台服务)** | 开机欢迎灯效覆盖、自动温控曲线、按电量切模式、**纯声明式看门狗与自动化规则总线** | **Rust 内置微任务 / Watcher Hub / Rhai** | **0 ~ 100 KB**<br>(极致轻量) | **完全无界面 (Zero GUI / 0 MB)**，坚决不弹窗 |
 | **`shell` (替代型客户端)** | 用户嫌官方界面不好看，自建全新极简/赛博控制台 | **独立全尺寸 Webview** | ~35MB | 拥有主控权，可彻底取代官方 `main` 界面 |
 | **`driver` (模具驱动适配)** | 适配宝龙达新机型、机械革命未来新架构 | **原生 Rust 动态库 (.dll)** | 0 运行时开销 | 直接与 ACPI/WMI 驱动对接 |
 
@@ -131,7 +135,8 @@ OpenRevo 坚决反对“无脑开 Webview”。我们确立了**按需分配运�
     "telemetry:read",
     "power:control",
     "fan:control"
-  ]
+  ],
+  "min_host_version": "0.9.3"
 }
 ```
 
@@ -142,6 +147,7 @@ OpenRevo 坚决反对“无脑开 Webview”。我们确立了**按需分配运�
 | `id` | `string` | **必填** | 全类型 | 插件全局唯一标识符（纯英文、数字、下划线、中划线） |
 | `name` | `string` | **必填** | 全类型 | 人类可读的插件名称，展示于插件管理器 |
 | `version` | `string` | **必填** | 全类型 | 语义化版本号（如 `1.0.0`） |
+| `min_host_version` / `min_version` / `openrevo_version` | `string` | 可选 | 全类型 | **【宿主最低兼容版本】**采用标准 SemVer（如 `"0.9.3"`）。若宿主版本低于该值，插件管理器自动显示警告徽章并安全阻止运行，杜绝新特性在旧二进制中静默失效 |
 | `plugin_type` / `type` | `string` | **必填** | 全类型 | 插件形态：`"skin"` \| `"background"` \| `"slot"` \| `"tab"` \| `"widget"` \| `"service"` \| `"shell"`（双向别名兼容） |
 | `target_slot` / `slot` | `string` | 条件必填 | `slot` | 挂载的目标宿主插槽代号（如 `"power.hardware_limit"`） |
 | `slot_height` / `slotHeight` | `string` | 可选 | `slot` | 微插槽高度约束（如 `"36px"` 或 `"54px"`，默认 `"54px"`） |
@@ -152,6 +158,8 @@ OpenRevo 坚决反对“无脑开 Webview”。我们确立了**按需分配运�
 | `window` | `object` | 可选 | `widget`/`tab`/`skin`/`shell` | 视窗高级几何与外廓属性（详见下方 `window` 子对象详解） |
 | `telemetry` | `object` | 可选 | 全类型 | 声明硬件遥测需求（见下文防独显唤醒机制） |
 | `permissions` | `string[]`| 可选 | 全类型 | 声明所需权限（未声明将被安全网关拦截） |
+| `watchers` / `rules` | `object[]` | 可选 | 全类型 | **【声明式自动化规则总线】**无需 Webview 视窗，宿主内核统一调度温度联动、游戏切模与硬件保护规则 |
+| `shortcuts` | `object[]` | 可选 | 全类型 | **【声明式全局快捷键总线】**Ring3 穿透级热键绑定，自动联动机甲 OSD 弹窗与动作流 |
 | `service` | `object` | 可选 | `tab`/`widget`/`slot` | **【声明式伴随提权服务 / Sidecar】**声明插件依赖的后端本地原生进程服务（见下方 `service` 子对象详解） |
 
 #### `window` 视窗子对象详细配置表 (全场景悬浮与专业大窗口)
@@ -1349,6 +1357,78 @@ await invoke('register_custom_shortcut', {
 // 3. 注销快捷键
 await invoke('unregister_custom_shortcut', { id: 'user_boss_key' });
 ```
+
+---
+
+### 用例 12: 声明式自动化监听与规则看门狗 (Universal Watcher & Trigger Hub —— 彻底根除隐藏桌宠偷跑轮询)
+
+> **痛点背景**：在早期，部分极客开发者为了实现“监控 CPU 结温达到 55℃ 时自动刷新 EC 状态字”或“启动游戏时自动切狂暴模式”，在插件里声明一个 `widget`（桌面悬浮挂件），将其设为全透明隐藏并使用 `setInterval` 进行 100ms 死循环轮询。  
+> **这种做法存在致命缺陷**：
+> 1. **白白浪费内存**：一个 WebView2 实例增量占用约 15MB~25MB 内存；
+> 2. **后台节流失效**：Windows 与 Chromium 会自动将不可见窗口的定时器强行节流冻结，导致切模逻辑经常失效或严重滞后；
+> 3. **唤醒独显功耗爆炸**：挂件前端轮询不当会强制唤醒本处于 D3Cold 深睡的 NVIDIA 独立显卡。
+>
+> **官方终极解法**：借助 OpenRevo 微内核内建的 **Universal Watcher & Trigger Hub**，实现纯声明式规则监控。**0 MB 内存、0 额外视窗、0 代码死循环，由宿主内核在无锁遥测心跳中统一调度！**
+
+#### 1. 极简项目结构
+一个纯自动化规则插件，**根目录下只需一个 `manifest.json` 文件**，连 HTML、CSS、JS 都完全不需要写：
+```text
+%APPDATA%\OpenRevo\plugins\mode4-fan-unblocker\
+└── manifest.json
+```
+
+#### 2. 清单配置 (`manifest.json`)
+```json
+{
+  "id": "mode4-fan-unblocker",
+  "name": "自定义模式55度解锁补丁",
+  "version": "1.0.0",
+  "author": "OpenRevo Community",
+  "description": "监控结温并在进入自定义模式且>=55℃时自动执行安全切模与EC状态字刷新。",
+  "plugin_type": "service",
+  "min_host_version": "0.9.3",
+  "watchers": [
+    {
+      "id": "unblock_751_bit4",
+      "name": "55度模式刷新看门狗",
+      "enabled": true,
+      "cooldown_ms": 15000,
+      "when": {
+        "type": "telemetry",
+        "power_mode": 4,
+        "cpu_temp_gte": 55
+      },
+      "actions": [
+        { "action": "set_power_mode", "mode": 2 },
+        { "action": "delay_ms", "duration": 500 },
+        { "action": "set_power_mode", "mode": 4 },
+        { "action": "raw_ec_modify_mask", "address": "0x0751", "mask": "0x10", "value": true }
+      ]
+    },
+    {
+      "id": "game_auto_beast",
+      "name": "黑神话启动自动切狂暴",
+      "enabled": true,
+      "cooldown_ms": 5000,
+      "when": {
+        "type": "foreground_process",
+        "targets": ["b1.exe", "b1-win64-shipping.exe"],
+        "trigger_on": "enter"
+      },
+      "actions": [
+        { "action": "set_power_mode", "mode": 3 },
+        { "action": "notify_osd", "title": "游戏感知联动", "message": "已自动切换至狂暴模式" }
+      ]
+    }
+  ]
+}
+```
+
+#### 3. 核心机制优势解析
+* **`cooldown_ms` 防抖冷却**：规则命中后进入冷却锁，防止温度在临界线抖动时引发高频重复触发与硬件冲突；
+* **地址与掩码语法宽容**：`address` 与 `mask` 既支持字符串十六进制（`"0x0751"`、`"0x10"`），也支持十进制数字（`1873`、`16`）；
+* **宿主生命周期全托管**：在宿主【插件】列表中启用该插件即刻注入微内核总线开始看门狗监控；关闭插件时自动全量卸载，不留任何残留副作用；
+* **版本兼容守护 (`min_host_version`)**：声明 `"min_host_version": "0.9.3"`，若旧版宿主尝试加载，界面将明确亮起警告徽章并安全拦截，引导用户升级。
 
 ---
 
