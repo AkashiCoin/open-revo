@@ -131,6 +131,12 @@ pub fn set_plugin_enabled_unified(id: String, enabled: bool) -> Result<bool, Str
     let plugin_type = if manifest_path.exists() {
         if let Ok(c) = std::fs::read_to_string(&manifest_path) {
             if let Ok(m) = serde_json::from_str::<crate::commands::system_cmd::RawPluginManifest>(&c) {
+                if enabled {
+                    let (is_compat, notice) = crate::commands::system_cmd::check_version_compatibility(m.min_host_version.as_deref());
+                    if !is_compat {
+                        return Err(notice.unwrap_or_else(|| "当前宿主版本低于插件要求版本".into()));
+                    }
+                }
                 m.plugin_type.unwrap_or_else(|| "extension".into())
             } else {
                 "extension".into()

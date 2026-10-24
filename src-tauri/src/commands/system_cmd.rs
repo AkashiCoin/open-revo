@@ -771,6 +771,9 @@ pub struct CustomPluginItem {
     pub shortcuts: Option<Vec<crate::system::shortcuts::ShortcutBinding>>,
     pub watchers: Option<Vec<crate::system::watcher_hub::WatcherDefinition>>,
     pub permissions: Option<Vec<String>>,
+    pub min_host_version: Option<String>,
+    pub is_compatible: bool,
+    pub compatibility_notice: Option<String>,
 }
 
 #[derive(Debug, Clone, serde::Deserialize)]
@@ -801,6 +804,47 @@ pub struct RawPluginManifest {
     pub watchers: Option<Vec<crate::system::watcher_hub::WatcherDefinition>>,
     #[serde(default)]
     pub permissions: Option<Vec<String>>,
+    #[serde(default, alias = "openrevo_version", alias = "min_version")]
+    pub min_host_version: Option<String>,
+}
+
+pub fn check_version_compatibility(min_host_version: Option<&str>) -> (bool, Option<String>) {
+    let req_str = match min_host_version {
+        Some(s) if !s.trim().is_empty() => s.trim(),
+        _ => return (true, None),
+    };
+
+    let clean_req = req_str.trim_start_matches(|c| c == 'v' || c == 'V').trim();
+    let parts: Vec<&str> = clean_req.split('.').collect();
+    let normalized = if parts.len() == 2 && parts.iter().all(|p| p.chars().all(|c| c.is_ascii_digit())) {
+        format!("{}.0", clean_req)
+    } else if parts.len() == 1 && parts.iter().all(|p| p.chars().all(|c| c.is_ascii_digit())) {
+        format!("{}.0.0", clean_req)
+    } else {
+        clean_req.to_string()
+    };
+
+    let host_ver_str = env!("CARGO_PKG_VERSION");
+    let host_ver = match semver::Version::parse(host_ver_str) {
+        Ok(v) => v,
+        Err(_) => return (true, None),
+    };
+
+    if let Ok(req_ver) = semver::Version::parse(&normalized) {
+        if host_ver >= req_ver {
+            (true, None)
+        } else {
+            (false, Some(format!("需 OpenRevo v{}+ (当前 v{})", req_str, host_ver_str)))
+        }
+    } else if let Ok(req) = semver::VersionReq::parse(clean_req) {
+        if req.matches(&host_ver) {
+            (true, None)
+        } else {
+            (false, Some(format!("需 OpenRevo {} (当前 v{})", req_str, host_ver_str)))
+        }
+    } else {
+        (true, None)
+    }
 }
 
 const B64_CHARS: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -1125,7 +1169,10 @@ pub fn get_custom_plugins() -> Result<Vec<CustomPluginItem>, String> {
                         if let Ok(manifest) = serde_json::from_str::<RawPluginManifest>(&content) {
                             let id = manifest.id.unwrap_or_else(|| dir_name.clone());
                             let plugin_type = manifest.plugin_type.unwrap_or_else(|| "extension".into());
-                            let enabled = if plugin_type == "skin" {
+                            let (is_compatible, compatibility_notice) = check_version_compatibility(manifest.min_host_version.as_deref());
+                            let enabled = if !is_compatible {
+                                false
+                            } else if plugin_type == "skin" {
                                 cfg.active_skin.as_ref() == Some(&id)
                             } else if plugin_type == "background" {
                                 cfg.active_background.as_ref() == Some(&id)
@@ -1150,8 +1197,11 @@ pub fn get_custom_plugins() -> Result<Vec<CustomPluginItem>, String> {
                                 shortcuts: manifest.shortcuts.clone(),
                                 watchers: manifest.watchers.clone(),
                                 permissions: manifest.permissions.clone(),
+                                min_host_version: manifest.min_host_version.clone(),
+                                is_compatible,
+                                compatibility_notice,
                             });
-                            if enabled {
+                            if enabled && is_compatible {
                                 if let Some(ref scs) = manifest.shortcuts {
                                     crate::system::shortcuts::load_plugin_shortcuts(&id, scs.clone());
                                 }
@@ -1184,6 +1234,9 @@ pub fn get_custom_plugins() -> Result<Vec<CustomPluginItem>, String> {
                     shortcuts: None,
                     watchers: None,
                     permissions: None,
+                    min_host_version: None,
+                    is_compatible: true,
+                    compatibility_notice: None,
                 });
             }
         }
@@ -1209,6 +1262,19 @@ pub fn get_plugin_service_status(plugin_id: String) -> Result<crate::system::plu
 
 #[tauri::command]
 pub fn set_custom_plugin_enabled(id: String, enabled: bool) -> Result<bool, String> {
+    if enabled {
+        let p_dir = find_plugin_dir(&id);
+        let m_path = p_dir.join("manifest.json");
+        if let Ok(content) = std::fs::read_to_string(&m_path) {
+            if let Ok(manifest) = serde_json::from_str::<RawPluginManifest>(&content) {
+                let (is_compatible, notice) = check_version_compatibility(manifest.min_host_version.as_deref());
+                if !is_compatible {
+                    return Err(notice.unwrap_or_else(|| "当前宿主版本低于插件要求版本".into()));
+                }
+            }
+        }
+    }
+
     let mut cfg = crate::system::config::load_config();
     cfg.custom_plugin_toggles.insert(id.clone(), enabled);
     crate::system::config::save_config(&cfg);

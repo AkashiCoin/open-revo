@@ -36,6 +36,9 @@ export interface CustomPluginItem {
   shortcuts?: any[];
   watchers?: any[];
   permissions?: string[];
+  min_host_version?: string;
+  is_compatible?: boolean;
+  compatibility_notice?: string;
 }
 
 export interface PluginsViewProps {
@@ -241,6 +244,10 @@ export const PluginsView: React.FC<PluginsViewProps> = ({
       return;
     }
 
+    if (plugin.is_compatible === false) {
+      return;
+    }
+
     const nextVal = !plugin.enabled;
     setCustomPlugins((prev) =>
       prev.map((p) => (p.id === plugin.id ? { ...p, enabled: nextVal } : p))
@@ -404,6 +411,15 @@ export const PluginsView: React.FC<PluginsViewProps> = ({
                         ) : (
                           <RevBadge variant="default">{plugin.plugin_type}</RevBadge>
                         )}
+                        {plugin.is_compatible === false ? (
+                          <RevBadge variant="error" title={plugin.compatibility_notice}>
+                            ⚠️ {plugin.compatibility_notice || `需 OpenRevo v${plugin.min_host_version}+`}
+                          </RevBadge>
+                        ) : plugin.min_host_version ? (
+                          <RevBadge variant="default" title={`最低要求 OpenRevo v${plugin.min_host_version}`}>
+                            v{plugin.min_host_version}+
+                          </RevBadge>
+                        ) : null}
                       </div>
                       <span className="plugin-item-desc">{plugin.description}</span>
                       <div className="plugin-item-meta">
@@ -417,6 +433,7 @@ export const PluginsView: React.FC<PluginsViewProps> = ({
                     <RevSwitch
                       checked={isPluginActive}
                       onChange={() => handleToggleCustomPlugin(plugin)}
+                      disabled={plugin.is_compatible === false}
                       size="sm"
                       activeColor="var(--status-ok)"
                     />

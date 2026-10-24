@@ -73,6 +73,11 @@ pub async fn spawn_widget_window_internal(app: &AppHandle, plugin_id: &str) -> R
     let manifest: RawPluginManifest = serde_json::from_str(&manifest_content)
         .map_err(|e| format!("Invalid manifest.json schema: {}", e))?;
 
+    let (is_compat, notice) = crate::commands::system_cmd::check_version_compatibility(manifest.min_host_version.as_deref());
+    if !is_compat {
+        return Err(notice.unwrap_or_else(|| "当前 OpenRevo 版本低于该挂件最低要求版本".into()));
+    }
+
     let win_cfg = manifest.window.clone().unwrap_or(crate::commands::system_cmd::PluginWindowConfig {
         width: 240.0,
         height: 320.0,

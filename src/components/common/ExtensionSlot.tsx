@@ -28,7 +28,7 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({
     try {
       const plugins = await invoke<CustomPluginItem[]>('get_custom_plugins');
       const match = plugins.find(
-        (p) => p.plugin_type === 'slot' && p.target_slot === name && p.enabled
+        (p) => p.plugin_type === 'slot' && p.target_slot === name && p.enabled && p.is_compatible !== false
       );
       if (match) {
         setMatchingPlugin(match);

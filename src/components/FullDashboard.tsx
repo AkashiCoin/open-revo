@@ -254,7 +254,7 @@ export const FullDashboard: React.FC<FullDashboardProps> = ({
     try {
       const plugins = await invoke<CustomPluginItem[]>('get_custom_plugins');
       if (plugins) {
-        setTabPlugins(plugins.filter((p) => p.plugin_type === 'tab' && p.enabled));
+        setTabPlugins(plugins.filter((p) => p.plugin_type === 'tab' && p.enabled && p.is_compatible !== false));
       }
       const toggles = await invoke<Record<string, boolean>>('get_module_toggles');
       if (toggles) {
