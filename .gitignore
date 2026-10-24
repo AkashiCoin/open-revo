@@ -24,3 +24,7 @@ node_modules/
 coverage/
 *.pdb
 *.exe
+
+# Auto added by sync_to_public
+dist_release
+target
