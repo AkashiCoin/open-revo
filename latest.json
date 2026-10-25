@@ -1,16 +1,16 @@
 {
     "version":  "0.9.3",
-    "commit":  "2e3da76",
+    "commit":  "5cd38b1",
     "tag":  "0.9.3",
     "display_version":  "v0.9.3",
-    "build_timestamp":  1792912501,
-    "pub_date":  "2026-10-25T07:15:01Z",
+    "build_timestamp":  1792912806,
+    "pub_date":  "2026-10-25T07:20:06Z",
     "notes":  "Automated release build for OpenRevo v0.9.3",
     "assets":  {
                    "binary_only":  {
                                        "filename":  "open-revo.exe",
-                                       "size":  10079232,
-                                       "sha256":  "9a35b8f2ce185da498d88891ab3a8446a039d0572920f8861ea42ad6dd5a54bb",
+                                       "size":  10078720,
+                                       "sha256":  "6b7e66bdd7175cb32464c97623f1c459662bb1215d6307ced3dcdb440d5717ee",
                                        "sources":  {
                                                        "github":  "https://github.com/faintonce/open-revo/releases/download/0.9.3/open-revo.exe",
                                                        "gitee":  "https://gitee.com/faintonce/open-revo/releases/download/0.9.3/open-revo.exe"
@@ -18,8 +18,8 @@
                                    },
                    "portable":  {
                                     "filename":  "OpenRevo-v0.9.3-portable.7z",
-                                    "size":  2914023,
-                                    "sha256":  "146cf7b524b899cc986438fba3a6617383449a1dc595729ef7f98efbf8128db4",
+                                    "size":  2915173,
+                                    "sha256":  "968b3e7ec38c9ff9d2853c2005da7890b92d2aaa92f7011c740984c261e8100b",
                                     "sources":  {
                                                     "github":  "https://github.com/faintonce/open-revo/releases/download/0.9.3/OpenRevo-v0.9.3-portable.7z",
                                                     "gitee":  "https://gitee.com/faintonce/open-revo/releases/download/0.9.3/OpenRevo-v0.9.3-portable.7z"
@@ -27,8 +27,8 @@
                                 },
                    "installer":  {
                                      "filename":  "OpenRevo-v0.9.3-x64-Setup.exe",
-                                     "size":  3377611,
-                                     "sha256":  "ccaee27943c88cbd02029989c18c159663e91351b34afca43f4753adf2ee5704",
+                                     "size":  3377915,
+                                     "sha256":  "f6d0efa033ad9cd065efb533b8294b63ad1b2997239f39c7d2942f65996a722c",
                                      "sources":  {
                                                      "github":  "https://github.com/faintonce/open-revo/releases/download/0.9.3/OpenRevo-v0.9.3-x64-Setup.exe",
                                                      "gitee":  "https://gitee.com/faintonce/open-revo/releases/download/0.9.3/OpenRevo-v0.9.3-x64-Setup.exe"
