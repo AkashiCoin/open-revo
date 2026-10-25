@@ -193,10 +193,10 @@ pub fn race_manifest_fetch_sync(
     }
 }
 
-/// Checks whether an update is available based on SemVer and Git Commit
+/// Checks whether an update is available based strictly on SemVer
 pub fn evaluate_update(
     local_version: &str,
-    local_commit: &str,
+    _local_commit: &str,
     manifest: &ReleaseManifest,
 ) -> bool {
     let local_v = match Version::parse(local_version) {
@@ -208,17 +208,8 @@ pub fn evaluate_update(
         Err(_) => return false,
     };
 
-    // Primary rule: standard semantic version bump
-    if remote_v > local_v {
-        return true;
-    }
-
-    // Secondary rule: in-version commit bump (for frequent agile test builds)
-    if remote_v == local_v && !manifest.commit.is_empty() && manifest.commit != local_commit {
-        return true;
-    }
-
-    false
+    // Strict semantic version bump (remote_v > local_v)
+    remote_v > local_v
 }
 
 fn check_for_updates_sync(preferred_source: Option<&str>) -> Result<UpdateCheckResult, String> {
